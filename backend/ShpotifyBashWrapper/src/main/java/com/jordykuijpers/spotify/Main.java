@@ -1,7 +1,15 @@
 package com.jordykuijpers.spotify;
 
-import com.jordykuijpers.spotify.shpotifybash.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
+import com.jordykuijpers.spotify.SpotifyPlayer.SpotifyPlayer;
+import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper;
 import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper.ResourceType;
+import com.jordykuijpers.spotify.shpotifybash.ShpotifyBashWrapper;
+import com.wrapper.spotify.Api;
+import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
+import com.wrapper.spotify.models.ClientCredentials;
 
 public class Main {
 
@@ -47,6 +55,13 @@ public class Main {
 //			
 //			spotify.toggleRepeat();
 //			spotify.toggleShuffle();
+			
+			/*
+			 * Spotify Web API test
+			 */
+			SpotifyPlayer spotifyPlayer = new SpotifyPlayer("7da5c2e103f24d54ae168730e8905823", "b58659565d5d4c3f9097420bd1b3ea97");
+			new Thread(spotifyPlayer).start();
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
