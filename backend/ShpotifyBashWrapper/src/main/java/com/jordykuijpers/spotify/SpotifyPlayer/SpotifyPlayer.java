@@ -1,23 +1,24 @@
 package com.jordykuijpers.spotify.SpotifyPlayer;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper;
-import com.jordykuijpers.spotify.shpotifybash.ShpotifyBashWrapper;
 import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper.ResourceType;
+import com.jordykuijpers.spotify.shpotifybash.ShpotifyBashWrapper;
 import com.wrapper.spotify.Api;
 import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.TrackRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.ClientCredentials;
-import com.wrapper.spotify.models.SimpleArtist;
 import com.wrapper.spotify.models.Track;
 
+@Component
+@Scope("singleton")
 public class SpotifyPlayer implements Runnable {
 	protected IShpotifyBashWrapper spotify = null;
 	
@@ -28,7 +29,7 @@ public class SpotifyPlayer implements Runnable {
 		INIT, FETCH, PLAYING, ENDED, ERROR, NONE
 	};
 
-	private ConcurrentLinkedQueue<ISpotifyPlayable> playingQueue = new ConcurrentLinkedQueue<ISpotifyPlayable>();
+	public ConcurrentLinkedQueue<ISpotifyPlayable> playingQueue = new ConcurrentLinkedQueue<ISpotifyPlayable>();
 	private String clientId;
 	private String clientSecret;
 	private Api api;
@@ -42,11 +43,12 @@ public class SpotifyPlayer implements Runnable {
 
 	private long currentPlayingTime = 0;
 
-	private SpotifyTrackDTO currentTrack = null;
+	private SpotifyTrack currentTrack = null;
 	
 	boolean validSpotifyBash = false;
 	
 	private int delayCompensation = 500;
+	private boolean _purgeQueueFlag = false;
 
 	public SpotifyPlayer(String clientId, String clientSecret, String spotifyBashLocation) {
 		try {
@@ -75,8 +77,14 @@ public class SpotifyPlayer implements Runnable {
 				case INIT:
 					if (!this.playingQueue.isEmpty()) {
 						this.changePlayerState(PlayerState.FETCH);
-					} else
+					} else {
+						try {
+							Thread.sleep(STEPINTERVAL);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 						this.changePlayerState(PlayerState.INIT);
+					}
 					break;
 				case FETCH:
 					if (!this.playingQueue.isEmpty()) {
@@ -93,27 +101,12 @@ public class SpotifyPlayer implements Runnable {
 
 							try {
 								track = request.get();
+								currentTrack = new SpotifyTrack(track);
 
-								/*
-								 * 2. Get track info and determine play time
-								 */
-								String trackDurationInMinSec = this.formatMiliSecToMinSec(track.getDuration());
-
-								List<SimpleArtist> trackArtistList = track.getArtists();
-								StringBuilder trackArtists = new StringBuilder();
-								for (int i = 0; i < trackArtistList.size(); i++) {
-									trackArtists.append(trackArtistList.get(i).getName());
-									if (trackArtistList.size() > 1 && i < trackArtistList.size() - 1)
-										trackArtists.append(", ");
-								}
-
-								currentTrack = new SpotifyTrackDTO(trackArtists.toString(), track.getName(),
-										track.getDuration());
-
-								System.out.print("(" + trackDurationInMinSec + ") ");
-								System.out.print(trackArtists.toString());
+								System.out.print("(" + currentTrack.getDurationAsFormattedString() + ") ");
+								System.out.print(currentTrack.getArtistsAsFormattedString());
 								System.out.print(" - ");
-								System.out.println(track.getName());
+								System.out.println(currentTrack.getTitle());
 
 								this.currentPlayingTime = 0;
 
@@ -138,11 +131,14 @@ public class SpotifyPlayer implements Runnable {
 					this.currentPlayingTime += this.previousIntervalDuration;
 					
 					if (this.currentPlayingTime >= this.currentTrack.getDuration() - this.delayCompensation) {
+						if (this._purgeQueueFlag)
+							this.purgePlayingQueue(false);
+						
 						this.changePlayerState(PlayerState.ENDED);
 					} else {
-						System.out.println(currentTrack.getArtists() + " - " + currentTrack.getTitle() + "("
-								+ this.formatMiliSecToMinSec(this.currentPlayingTime) + "/"
-								+ this.formatMiliSecToMinSec(this.currentTrack.getDuration()) + ")");
+						System.out.println(currentTrack.getArtistsAsFormattedString() + " - " + currentTrack.getTitle() + "("
+								+ SpotifyTrack.formatDurationAsString((int) this.currentPlayingTime) + "/"
+								+ currentTrack.getDurationAsFormattedString() + ")");
 						
 						try {
 							Thread.sleep(STEPINTERVAL);
@@ -159,6 +155,12 @@ public class SpotifyPlayer implements Runnable {
 					break;
 				default:
 				case ERROR:
+					System.out.println("In error state!");
+					try {
+						Thread.sleep(STEPINTERVAL);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					break;
 				}
 
@@ -175,6 +177,20 @@ public class SpotifyPlayer implements Runnable {
 	public void addToPlayingQueue(ISpotifyPlayable playable) {
 		this.playingQueue.add(playable);
 	}
+	
+	public void purgePlayingQueue(boolean waitUntilCurrentTrackEnds) {
+		if (waitUntilCurrentTrackEnds) {
+			if (this.playerState == PlayerState.PLAYING)
+				this._purgeQueueFlag = true;
+		}
+		else {
+			while (!this.playingQueue.isEmpty())
+				this.playingQueue.poll();
+			
+			this._purgeQueueFlag = false;
+		}
+	}
+	
 	
 	public void setDelayCompensation(int compensationInMiliSec) {
 		this.delayCompensation = compensationInMiliSec;
@@ -205,11 +221,5 @@ public class SpotifyPlayer implements Runnable {
 	protected void changePlayerState(PlayerState newState) {
 		this.previousPlayerState = this.playerState;
 		this.playerState = newState;
-	}
-
-	protected String formatMiliSecToMinSec(long currentPlayingTime2) {
-		return String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(currentPlayingTime2),
-				TimeUnit.MILLISECONDS.toSeconds(currentPlayingTime2)
-						- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentPlayingTime2)));
 	}
 }
