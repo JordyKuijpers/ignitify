@@ -143,6 +143,13 @@ public class SpotifyPlayer implements Runnable {
 						System.out.println(currentTrack.getArtists() + " - " + currentTrack.getTitle() + "("
 								+ this.formatMiliSecToMinSec(this.currentPlayingTime) + "/"
 								+ this.formatMiliSecToMinSec(this.currentTrack.getDuration()) + ")");
+						
+						try {
+							Thread.sleep(STEPINTERVAL);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						
 						this.changePlayerState(PlayerState.PLAYING);
 					}
 
@@ -153,12 +160,6 @@ public class SpotifyPlayer implements Runnable {
 				default:
 				case ERROR:
 					break;
-				}
-
-				try {
-					Thread.sleep(STEPINTERVAL);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
 
 				stopWatch.stop();
