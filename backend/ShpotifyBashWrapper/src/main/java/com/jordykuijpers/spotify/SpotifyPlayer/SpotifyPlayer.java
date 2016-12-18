@@ -7,6 +7,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
 
+import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper;
+import com.jordykuijpers.spotify.shpotifybash.ShpotifyBashWrapper;
+import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper.ResourceType;
 import com.wrapper.spotify.Api;
 import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.TrackRequest;
@@ -16,6 +19,8 @@ import com.wrapper.spotify.models.SimpleArtist;
 import com.wrapper.spotify.models.Track;
 
 public class SpotifyPlayer implements Runnable {
+	protected IShpotifyBashWrapper spotify = null;
+	
 	protected static final int STEPINTERVAL = 200;
 	protected static final int EMPTY_PLAYING_QUEUE_SLEEPTIME = 1000;
 
@@ -38,14 +43,24 @@ public class SpotifyPlayer implements Runnable {
 	private long currentPlayingTime = 0;
 
 	private SpotifyTrackDTO currentTrack = null;
+	
+	boolean validSpotifyBash = false;
 
-	public SpotifyPlayer(String clientId, String clientSecret) {
+	public SpotifyPlayer(String clientId, String clientSecret, String spotifyBashLocation) {
+		try {
+			this.spotify = new ShpotifyBashWrapper(spotifyBashLocation);
+			validSpotifyBash = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			validSpotifyBash = false;
+		}
+		
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 	}
 
 	public void run() {
-		if (initialize()) {
+		if (initialize() && validSpotifyBash) {
 			while (true) {
 				previousIntervalDuration = intervalDuration;
 				intervalDuration = 0;
@@ -100,6 +115,7 @@ public class SpotifyPlayer implements Runnable {
 
 								this.currentPlayingTime = 0;
 
+								this.spotify.playResource(ResourceType.TRACK, track.getUri());
 								this.changePlayerState(PlayerState.PLAYING);
 
 							} catch (IOException | WebApiException e) {
