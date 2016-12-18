@@ -1,15 +1,10 @@
 package com.jordykuijpers.spotify;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.SettableFuture;
 import com.jordykuijpers.spotify.SpotifyPlayer.SpotifyPlayer;
+import com.jordykuijpers.spotify.SpotifyPlayer.SpotifyTrack;
 import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper;
 import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper.ResourceType;
 import com.jordykuijpers.spotify.shpotifybash.ShpotifyBashWrapper;
-import com.wrapper.spotify.Api;
-import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
-import com.wrapper.spotify.models.ClientCredentials;
 
 public class Main {
 
@@ -62,6 +57,10 @@ public class Main {
 			SpotifyPlayer spotifyPlayer = new SpotifyPlayer("7da5c2e103f24d54ae168730e8905823", "b58659565d5d4c3f9097420bd1b3ea97");
 			new Thread(spotifyPlayer).start();
 			
+			spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:378iszndTZAR4dH8kwsLC6"));
+			spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:3PKtemUKxiDBvBo7tpQ8bG"));
+			spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:2CKPPzhBijcIyNx2gXWbpN"));
+			spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:7Dbg5O9nNWu6SWxDjJ9qoq"));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
