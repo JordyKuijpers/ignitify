@@ -115,7 +115,7 @@ public class SpotifyPlayer implements Runnable {
 
 								this.currentPlayingTime = 0;
 
-								this.spotify.playResource(ResourceType.TRACK, track.getUri());
+								this.spotify.playResource(ResourceType.URI, playableTrack.getURI(false));
 								this.changePlayerState(PlayerState.PLAYING);
 
 							} catch (IOException | WebApiException e) {

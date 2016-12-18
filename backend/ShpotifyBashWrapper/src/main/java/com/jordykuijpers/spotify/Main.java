@@ -61,7 +61,7 @@ public class Main {
 			//SpotifyPlayer spotifyPlayer = new SpotifyPlayer("7da5c2e103f24d54ae168730e8905823",
 			//		"b58659565d5d4c3f9097420bd1b3ea97", "/Volumes/DevOps/Ignitify/vibify/shpotify/shpotify/spotify");
 			SpotifyPlayer spotifyPlayer = new SpotifyPlayer("7da5c2e103f24d54ae168730e8905823",
-					"b58659565d5d4c3f9097420bd1b3ea97", "C:\\devprivate\\backend\\ShpotifyBash\\spotify_mock.cmd");
+					"b58659565d5d4c3f9097420bd1b3ea97", "/Volumes/DevOps/Ignitify/vibify/shpotify/shpotify/spotify");
 			new Thread(spotifyPlayer).start();
 
 			spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:378iszndTZAR4dH8kwsLC6"));
