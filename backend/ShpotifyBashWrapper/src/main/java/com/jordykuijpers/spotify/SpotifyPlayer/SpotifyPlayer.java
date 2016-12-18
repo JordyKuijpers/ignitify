@@ -45,6 +45,8 @@ public class SpotifyPlayer implements Runnable {
 	private SpotifyTrackDTO currentTrack = null;
 	
 	boolean validSpotifyBash = false;
+	
+	private int delayCompensation = 500;
 
 	public SpotifyPlayer(String clientId, String clientSecret, String spotifyBashLocation) {
 		try {
@@ -135,7 +137,7 @@ public class SpotifyPlayer implements Runnable {
 				case PLAYING:
 					this.currentPlayingTime += this.previousIntervalDuration;
 					
-					if (this.currentPlayingTime >= this.currentTrack.getDuration()) {
+					if (this.currentPlayingTime >= this.currentTrack.getDuration() - this.delayCompensation) {
 						this.changePlayerState(PlayerState.ENDED);
 					} else {
 						System.out.println(currentTrack.getArtists() + " - " + currentTrack.getTitle() + "("
@@ -159,13 +161,6 @@ public class SpotifyPlayer implements Runnable {
 					e.printStackTrace();
 				}
 
-				// 1. Poll new track from queue
-				// 2. Get track info and determine play time
-				// 3. Set timer for playtime
-				// 4. When timer reached, goto: 1
-
-				// 1a. If no new track, sleep
-
 				stopWatch.stop();
 				intervalDuration = stopWatch.getTime();
 				stopWatch.reset();
@@ -178,6 +173,10 @@ public class SpotifyPlayer implements Runnable {
 
 	public void addToPlayingQueue(ISpotifyPlayable playable) {
 		this.playingQueue.add(playable);
+	}
+	
+	public void setDelayCompensation(int compensationInMiliSec) {
+		this.delayCompensation = compensationInMiliSec;
 	}
 
 	protected boolean initialize() {
