@@ -25,6 +25,6 @@ public class Application {
 	@Bean
 	public SpotifyPlayer spotifyPlayer() {
 		return new SpotifyPlayer("7da5c2e103f24d54ae168730e8905823", "b58659565d5d4c3f9097420bd1b3ea97",
-				"C:\\devprivate\\backend\\ShpotifyBash\\spotify_mock.cmd");
+				"C:\\Ignitify\\Ignitify\\backend\\ShpotifyBash\\spotify_mock.cmd");
 	}
 }

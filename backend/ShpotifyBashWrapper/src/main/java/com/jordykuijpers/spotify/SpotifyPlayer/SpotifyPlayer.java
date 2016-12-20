@@ -175,6 +175,7 @@ public class SpotifyPlayer implements Runnable {
 	}
 
 	public void addToPlayingQueue(ISpotifyPlayable playable) {
+		
 		this.playingQueue.add(playable);
 	}
 	
