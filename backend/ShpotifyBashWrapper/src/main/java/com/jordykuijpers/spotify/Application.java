@@ -11,20 +11,29 @@ import com.jordykuijpers.spotify.SpotifyPlayer.SpotifyTrack;
 @SpringBootApplication
 public class Application {
 
-    public static void main(String[] args) {
-    	ConfigurableApplicationContext ctx = new SpringApplication(Application.class).run(args);
-    	SpotifyPlayer spotifyPlayer = ctx.getBean("spotifyPlayer", SpotifyPlayer.class);
-		new Thread(spotifyPlayer).start();
+	public static void main(String[] args) {
+		ConfigurableApplicationContext ctx = new SpringApplication(Application.class).run(args);
 
-		spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:378iszndTZAR4dH8kwsLC6"));
-		spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:3PKtemUKxiDBvBo7tpQ8bG"));
-		spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:2CKPPzhBijcIyNx2gXWbpN"));
-		spotifyPlayer.addToPlayingQueue(new SpotifyTrack("spotify:track:7Dbg5O9nNWu6SWxDjJ9qoq"));
-    }
-    
+		SpotifyPlayer spotifyPlayer = ctx.getBean("spotifyPlayer", SpotifyPlayer.class);
+		new Thread(spotifyPlayer).start();
+		
+		spotifyPlayer.addToPlayingQueue(ctx.getBean(SpotifyTrack.class, "spotify:track:378iszndTZAR4dH8kwsLC6")); //Sia, Sean Paul - Cheap Thrills
+		spotifyPlayer.addToPlayingQueue(ctx.getBean(SpotifyTrack.class, "spotify:track:3PKtemUKxiDBvBo7tpQ8bG")); //U2 - One
+		spotifyPlayer.addToPlayingQueue(ctx.getBean(SpotifyTrack.class, "spotify:track:5ghIJDpPoe3CfHMGu71E6T")); //Nirvana - Smells like teen spirit
+		spotifyPlayer.addToPlayingQueue(ctx.getBean(SpotifyTrack.class, "spotify:track:7Dbg5O9nNWu6SWxDjJ9qoq")); //Phil Collins - In the air tonight
+
+	}
+
 	@Bean
 	public SpotifyPlayer spotifyPlayer() {
-		return new SpotifyPlayer("7da5c2e103f24d54ae168730e8905823", "b58659565d5d4c3f9097420bd1b3ea97",
-				"C:\\Ignitify\\Ignitify\\backend\\ShpotifyBash\\spotify_mock.cmd");
+		return new SpotifyPlayer(
+				// "C:\\Ignitify\\Ignitify\\backend\\ShpotifyBash\\spotify_mock.cmd");
+				"C:\\devprivate\\backend\\ShpotifyBash\\spotify_mock.cmd");
 	}
+	
+	@Bean
+	public SpotifyAPIConfigurer spotifyAPIConfigurer() {
+		return new SpotifyAPIConfigurer();
+	}
+
 }

@@ -7,33 +7,34 @@ import com.jordykuijpers.spotify.SpotifyPlayer.ISpotifyPlayable;
 import com.jordykuijpers.spotify.SpotifyPlayer.SpotifyTrack;
 
 public class PlayingQueue {
-	private List<ISpotifyPlayable> artists;
+	private List<ISpotifyPlayable> tracks;
 	private int tracksInQueue;
 	
-	public PlayingQueue(List<ISpotifyPlayable> artists) {
+	public PlayingQueue(List<ISpotifyPlayable> tracks) {
 		super();
 		
-		if (artists == null)
-			this.artists = new ArrayList<ISpotifyPlayable>();
+		if (tracks == null)
+			this.tracks = new ArrayList<ISpotifyPlayable>();
 		else
-			this.artists = artists;
+			this.tracks = tracks;
 		
-		if (artists != null)
-			this.tracksInQueue = this.artists.size();
+		if (tracks != null)
+			this.tracksInQueue = this.tracks.size();
 		else
 			this.tracksInQueue = 0;
 	}
 
-	public List<ISpotifyPlayable> getArtists() {
-		return artists;
+	public List<ISpotifyPlayable> getTracks() {
+		return tracks;
 	}
 
-	public void setArtists(List<SpotifyTrack> artists) {
-		if (artists == null)
-			this.artists = new ArrayList<ISpotifyPlayable>();
+	
+	public void setTracks(List<SpotifyTrack> tracks) {
+		if (tracks == null)
+			this.tracks = new ArrayList<ISpotifyPlayable>();
 		
-		if (artists != null)
-			this.tracksInQueue = this.artists.size();
+		if (tracks != null)
+			this.tracksInQueue = this.tracks.size();
 		else
 			this.tracksInQueue = 0;
 	}

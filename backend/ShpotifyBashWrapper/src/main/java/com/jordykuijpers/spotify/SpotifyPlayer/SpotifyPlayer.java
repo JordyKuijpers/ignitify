@@ -1,6 +1,5 @@
 package com.jordykuijpers.spotify.SpotifyPlayer;
 
-import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -8,14 +7,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper;
-import com.jordykuijpers.spotify.shpotifybash.IShpotifyBashWrapper.ResourceType;
 import com.jordykuijpers.spotify.shpotifybash.ShpotifyBashWrapper;
-import com.wrapper.spotify.Api;
-import com.wrapper.spotify.exceptions.WebApiException;
-import com.wrapper.spotify.methods.TrackRequest;
-import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
-import com.wrapper.spotify.models.ClientCredentials;
-import com.wrapper.spotify.models.Track;
 
 @Component
 @Scope("singleton")
@@ -29,10 +21,7 @@ public class SpotifyPlayer implements Runnable {
 		INIT, FETCH, PLAYING, ENDED, ERROR, NONE
 	};
 
-	public ConcurrentLinkedQueue<ISpotifyPlayable> playingQueue = new ConcurrentLinkedQueue<ISpotifyPlayable>();
-	private String clientId;
-	private String clientSecret;
-	private Api api;
+	public ConcurrentLinkedQueue<SpotifyTrack> playingQueue = new ConcurrentLinkedQueue<SpotifyTrack>();
 
 	private PlayerState playerState = PlayerState.INIT;
 	private PlayerState previousPlayerState = PlayerState.NONE;
@@ -50,7 +39,7 @@ public class SpotifyPlayer implements Runnable {
 	private int delayCompensation = 500;
 	private boolean _purgeQueueFlag = false;
 
-	public SpotifyPlayer(String clientId, String clientSecret, String spotifyBashLocation) {
+	public SpotifyPlayer(String spotifyBashLocation) {
 		try {
 			this.spotify = new ShpotifyBashWrapper(spotifyBashLocation);
 			validSpotifyBash = true;
@@ -58,9 +47,6 @@ public class SpotifyPlayer implements Runnable {
 			e.printStackTrace();
 			validSpotifyBash = false;
 		}
-		
-		this.clientId = clientId;
-		this.clientSecret = clientSecret;
 	}
 
 	public void run() {
@@ -91,33 +77,12 @@ public class SpotifyPlayer implements Runnable {
 						/*
 						 * 1. Poll new track from queue
 						 */
-						ISpotifyPlayable playableTrack = this.playingQueue.poll();
+						SpotifyTrack playableTrack = this.playingQueue.poll();
 						if (playableTrack != null) {
 							System.out.println("---------------------------------------");
-							String trackURI = playableTrack.getURI(true);
-
-							final TrackRequest request = api.getTrack(trackURI).build();
-							Track track;
-
-							try {
-								track = request.get();
-								currentTrack = new SpotifyTrack(track);
-
-								System.out.print("(" + currentTrack.getDurationAsFormattedString() + ") ");
-								System.out.print(currentTrack.getArtistsAsFormattedString());
-								System.out.print(" - ");
-								System.out.println(currentTrack.getTitle());
-
-								this.currentPlayingTime = 0;
-
-								this.spotify.playResource(ResourceType.URI, playableTrack.getURI(false));
-								this.changePlayerState(PlayerState.PLAYING);
-
-							} catch (IOException | WebApiException e) {
-								System.out.println("SpotifyPlayer [" + this.playerState.toString()
-										+ "] ERROR: Trying to poll empty queue");
-								this.changePlayerState(PlayerState.ERROR);
-							}
+							//System.out.println(playableTrack.toString());
+							currentTrack = playableTrack;
+							this.changePlayerState(PlayerState.PLAYING);
 						} else {
 							System.out.println("SpotifyPlayer [" + this.playerState.toString()
 									+ "] ERROR: Could not fetch track information! Internet Connection?");
@@ -152,6 +117,7 @@ public class SpotifyPlayer implements Runnable {
 					break;
 				case ENDED:
 					this.changePlayerState(PlayerState.INIT);
+					this.currentPlayingTime = 0;
 					break;
 				default:
 				case ERROR:
@@ -174,7 +140,7 @@ public class SpotifyPlayer implements Runnable {
 
 	}
 
-	public void addToPlayingQueue(ISpotifyPlayable playable) {
+	public void addToPlayingQueue(SpotifyTrack playable) {
 		
 		this.playingQueue.add(playable);
 	}
@@ -192,31 +158,20 @@ public class SpotifyPlayer implements Runnable {
 		}
 	}
 	
+	public SpotifyTrack getCurrentTrack() {
+		return this.currentTrack;
+	}
+	
+	public String getCurrentPlayingTime() {
+		return SpotifyTrack.formatDurationAsString((int) this.currentPlayingTime);
+	}
 	
 	public void setDelayCompensation(int compensationInMiliSec) {
 		this.delayCompensation = compensationInMiliSec;
 	}
 
 	protected boolean initialize() {
-		api = Api.builder().clientId(clientId).clientSecret(clientSecret).build();
-
-		/* Create a request object. */
-		final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
-
-		boolean success = false;
-		/*
-		 * Use the request object to make the request, either asynchronously
-		 * (getAsync) or synchronously (get)
-		 */
-		try {
-			final ClientCredentials clientCredentials = request.get();
-			api.setAccessToken(clientCredentials.getAccessToken());
-			success = true;
-		} catch (Throwable t) {
-			System.out.println("An error occurred while getting the acces token.");
-		}
-
-		return success;
+		return true;
 	}
 
 	protected void changePlayerState(PlayerState newState) {
