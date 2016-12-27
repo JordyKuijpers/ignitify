@@ -5,7 +5,11 @@
   <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
 </head>
 <body ng-app="KollektifyApp" ng-cloak>
-  <h1>Kollektify</h1>
+  <div id="application" ng-controller="KollektifyAppController">
+    <h1>Kollektify</h1>
+    <p>{{localeTimeString}}</p>
+    <h2>{{countDown}}</p>
+  </div>
 
   <!-- Angular Material requires Angular.js Libraries -->
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
@@ -18,7 +22,51 @@
 
   <!-- Your application bootstrap  -->
   <script type="text/javascript">
-    angular.module('KollektifyApp', ['ngMaterial']);
+    var app = angular.module('KollektifyApp', ['ngMaterial']);
+    app.controller('KollektifyAppController', function($scope, $interval) {
+      $scope.localeTimeString = new Date().toLocaleTimeString("nl-NL");
+      $interval(function () {
+          $scope.localeTimeString = new Date().toLocaleTimeString("nl-NL");
+          $scope.countDown = null;
+
+          if ($scope.localeTimeString.startsWith("23:59:")) {
+            if ($scope.localeTimeString.endsWith("50")) {
+              $scope.countDown = "10";
+            }
+            else if ($scope.localeTimeString.endsWith("51")) {
+              $scope.countDown = "9";
+            }
+            else if ($scope.localeTimeString.endsWith("52")) {
+              $scope.countDown = "8";
+            }
+            else if ($scope.localeTimeString.endsWith("53")) {
+              $scope.countDown = "7";
+            }
+            else if ($scope.localeTimeString.endsWith("54")) {
+              $scope.countDown = "6";
+            }
+            else if ($scope.localeTimeString.endsWith("55")) {
+              $scope.countDown = "5";
+            }
+            else if ($scope.localeTimeString.endsWith("56")) {
+              $scope.countDown = "4";
+            }
+            else if ($scope.localeTimeString.endsWith("57")) {
+              $scope.countDown = "3";
+            }
+            else if ($scope.localeTimeString.endsWith("58")) {
+              $scope.countDown = "2";
+            }
+            else if ($scope.localeTimeString.endsWith("59")) {
+              $scope.countDown = "1";
+            }
+          }
+          else if ($scope.localeTimeString.startsWith("00:00:")) {
+            $scope.countDown = "HAPPY NEW YEAR MOTHERFUCKERS!";
+          }
+        }
+      , 500);
+    });
   </script>
 
 </body>
