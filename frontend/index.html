@@ -8,7 +8,13 @@
   <div id="application" ng-controller="KollektifyAppController">
     <h1>Kollektify</h1>
     <p>{{localeTimeString}}</p>
-    <h2>{{countDown}}</p>
+    <h2>{{countDown}}</h2>
+      <hr/>
+    <p>{{currentTrack.track.artistsAsFormattedString}} - {{currentTrack.track.title}}</p>
+    <p>{{currentTrack.currentPlayingTime}} / {{currentTrack.track.durationAsFormattedString}}</p>
+    <hr/>
+    <h2>Queue</h2>
+    <p ng-repeat="track in playingQueue.tracks">{{track.artistsAsFormattedString}} - {{track.title}}</p>
   </div>
 
   <!-- Angular Material requires Angular.js Libraries -->
@@ -23,11 +29,13 @@
   <!-- Your application bootstrap  -->
   <script type="text/javascript">
     var app = angular.module('KollektifyApp', ['ngMaterial']);
-    app.controller('KollektifyAppController', function($scope, $interval) {
+    app.controller('KollektifyAppController', function($scope, $interval, $http) {
       $scope.localeTimeString = new Date().toLocaleTimeString("nl-NL");
+      $scope.countDown = null;
+      $scope.currentTrack = null;
+      $scope.playingQueue = null;
       $interval(function () {
           $scope.localeTimeString = new Date().toLocaleTimeString("nl-NL");
-          $scope.countDown = null;
 
           if ($scope.localeTimeString.startsWith("23:59:")) {
             if ($scope.localeTimeString.endsWith("50")) {
@@ -64,8 +72,20 @@
           else if ($scope.localeTimeString.startsWith("00:00:")) {
             $scope.countDown = "HAPPY NEW YEAR MOTHERFUCKERS!";
           }
+
+
+
+          $http.get("http://localhost:8001/CurrentTrack")
+            .then(function(response) {
+              $scope.currentTrack = response.data;
+            });
+
+            $http.get("http://localhost:8001/PlayingQueue")
+              .then(function(response) {
+                $scope.playingQueue = response.data;
+              });
         }
-      , 500);
+      , 1000);
     });
   </script>
 
